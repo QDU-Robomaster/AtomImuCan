@@ -1,6 +1,6 @@
 # AtomImuCan
 
-No description provided
+AtomImu Communication(can)
 
 ## Required Hardware
 None
