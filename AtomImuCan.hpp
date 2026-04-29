@@ -18,6 +18,7 @@ depends: []
 
 #include "message.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -125,27 +126,27 @@ class AtomImuCan : public LibXR::Application {
                    LibXR::CAN::FilterMode::ID_RANGE,
                    param_.can_id, param_.can_id + 4);
 
-    thread_.Create(this,ThreadFunction,"AtomImuCan",
-    1024,LibXR::Thread::Priority::HIGH);
+    thread_.Create(this, ThreadFunction, "AtomImuCan", 1024,
+                   LibXR::Thread::Priority::HIGH);
   }
 
-static void ThreadFunction(AtomImuCan *atomimu){
-    while(true){
-     auto last_time = LibXR::Timebase::GetMilliseconds();
-    atomimu->CalcAbsAccl();
+  static void ThreadFunction(AtomImuCan* atomimu) {
+    while (true) {
+      auto last_time = LibXR::Timebase::GetMilliseconds();
+      atomimu->CalcAbsAccl();
 
 #if !USE_ATOMIMU_QUATERNION
-    atomimu->CalQuat();
+      atomimu->CalQuat();
 #endif
 
 #if !USE_ATOMIMU_EULER
-    atomimu->CalcEulr();
+      atomimu->CalcEulr();
 #endif
 
-    atomimu->atomimu_eulr_topic_.Publish(atomimu->feedback_.eulr);
-    atomimu->atomimu_absaccl_topic_.Publish(atomimu->feedback_.accl_abs);
-    atomimu->atomimu_gyro_topic_.Publish(atomimu->feedback_.gyro);
-      LibXR::Thread::SleepUntil(last_time,2);
+      atomimu->atomimu_eulr_topic_.Publish(atomimu->feedback_.eulr);
+      atomimu->atomimu_absaccl_topic_.Publish(atomimu->feedback_.accl_abs);
+      atomimu->atomimu_gyro_topic_.Publish(atomimu->feedback_.gyro);
+      LibXR::Thread::SleepUntil(last_time, 2);
     }
   }
 
@@ -194,6 +195,7 @@ static void ThreadFunction(AtomImuCan *atomimu){
         feedback_.quat.q1 = DecodeInt16Normalized(can_data->data[1]);
         feedback_.quat.q2 = DecodeInt16Normalized(can_data->data[2]);
         feedback_.quat.q3 = DecodeInt16Normalized(can_data->data[3]);
+        quat_ = feedback_.quat;
 #endif
         break;
       }
@@ -206,22 +208,17 @@ static void ThreadFunction(AtomImuCan *atomimu){
   void CalcAbsAccl() {
     float gravity_b[3];
 
-/*去除重力加速度*/
-void CalcAbsAccl()
-{
-  float gravity_b[3];
+    gravity_b[0] = 2.0f * ((quat_.q1 * quat_.q3 - quat_.q0 * quat_.q2) * 1.0f);
 
-  gravity_b[0] = 2.0f * ((quat_.q1 * quat_.q3 - quat_.q0 * quat_.q2) * 1.0f);
+    gravity_b[1] = 2.0f * ((quat_.q2 * quat_.q3 + quat_.q0 * quat_.q1) * 1.0f);
 
-  gravity_b[1] = 2.0f * ((quat_.q2 * quat_.q3 + quat_.q0 * quat_.q1) * 1.0f);
+    gravity_b[2] =
+        2.0f * ((0.5f - quat_.q1 * quat_.q1 - quat_.q2 * quat_.q2) * 1.0f);
 
-  gravity_b[2] =
-      2.0f * ((0.5f - quat_.q1 * quat_.q1 - quat_.q2 * quat_.q2) * 1.0f);
-
-  feedback_.accl_abs.x = feedback_.accl.x - gravity_b[0];
-  feedback_.accl_abs.y = feedback_.accl.y - gravity_b[1];
-  feedback_.accl_abs.z = feedback_.accl.z - gravity_b[2];
-}
+    feedback_.accl_abs.x = feedback_.accl.x - gravity_b[0];
+    feedback_.accl_abs.y = feedback_.accl.y - gravity_b[1];
+    feedback_.accl_abs.z = feedback_.accl.z - gravity_b[2];
+  }
 
 /* 计算四元数 在不接收四元数的时候使用 */
 void CalQuat() {
@@ -310,6 +307,7 @@ void CalQuat() {
   this->quat_.q1 *= recip_norm;
   this->quat_.q2 *= recip_norm;
   this->quat_.q3 *= recip_norm;
+  feedback_.quat = quat_;
 }
 
 /*计算欧拉角 在不接收欧拉角的时候使用*/
