@@ -110,9 +110,12 @@ class AtomImuCan : public LibXR::Application {
              Param&& param)
       : param_(std::forward<Param>(param)),
         feedback_{},
-        atomimu_eulr_topic_("atomimu_eulr", sizeof(feedback_.eulr)),
-        atomimu_absaccl_topic_("atomimu_absaccl", sizeof(feedback_.accl_abs)),
-        atomimu_gyro_topic_("atomimu_gyro", sizeof(feedback_.gyro)),
+        atomimu_eulr_topic_(
+            LibXR::Topic::CreateTopic<decltype(feedback_.eulr)>("atomimu_eulr")),
+        atomimu_absaccl_topic_(LibXR::Topic::CreateTopic<
+                                 decltype(feedback_.accl_abs)>("atomimu_absaccl")),
+        atomimu_gyro_topic_(
+            LibXR::Topic::CreateTopic<decltype(feedback_.gyro)>("atomimu_gyro")),
         can_(hw.template FindOrExit<LibXR::CAN>({param_.can_bus_name})) {
     UNUSED(app);
 
