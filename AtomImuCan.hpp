@@ -68,7 +68,6 @@ class AtomImuCan
   struct Param
   {
     uint16_t can_id;
-    LibXR::CAN& can_bus;
   };
 
   struct Vector3
@@ -108,8 +107,10 @@ class AtomImuCan
    * @brief IMU 的构造函数
    * @param param 陀螺仪参数 (CANID CanBusName 名称前缀)
    */
-  AtomImuCan(Param&& param)
-      : param_(std::forward<Param>(param)),
+  AtomImuCan(
+      LibXR::CAN& can_bus,
+      const Param& param = {.can_id = 10})
+      : param_(param),
         feedback_{},
         atomimu_eulr_topic_(
             LibXR::Topic::CreateTopic<decltype(feedback_.eulr)>("atomimu_eulr")),
@@ -117,7 +118,7 @@ class AtomImuCan
             LibXR::Topic::CreateTopic<decltype(feedback_.accl_abs)>("atomimu_absaccl")),
         atomimu_gyro_topic_(
             LibXR::Topic::CreateTopic<decltype(feedback_.gyro)>("atomimu_gyro")),
-        can_(std::addressof(param_.can_bus))
+        can_(std::addressof(can_bus))
   {
     auto rx_callback = LibXR::CAN::Callback::Create(
         [](bool in_isr, AtomImuCan* self, const LibXR::CAN::ClassicPack& pack)
