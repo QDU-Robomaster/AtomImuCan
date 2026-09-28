@@ -335,8 +335,6 @@ class AtomImuCan
   uint64_t GetTimestamp() const { return feedback_.timestamp; }
   bool IsOnline() const { return feedback_.online; }
 
-  void OnMonitor() {}
-
  private:
   static float DecodeFloat21(uint32_t encoded, float min, float max)
   {
