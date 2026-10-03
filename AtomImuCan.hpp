@@ -2,7 +2,7 @@
 
 // clang-format off
 /* === MODULE MANIFEST V2 ===
-module_description: AtomImu Communication(can)
+module_description: AtomImu 的 CAN 接收模块：解码加速度与角速度帧，解算姿态并发布欧拉角、去重力加速度与角速度 / CAN receiver Module for the AtomImu that decodes acceleration and angular-velocity frames, estimates attitude, and publishes Euler angles, gravity-free acceleration and angular velocity
 depends: []
 === END MANIFEST === */
 // clang-format on
@@ -29,9 +29,12 @@ depends: []
 #define CAN_PACK_ID_TIME 5
 #define BETA_IMU (0.033f)
 
-/* 四元数和欧拉角接收控制 */
-#define USE_ATOMIMU_QUATERNION 0 /* 1: 接收CAN四元数, 0: 使用自己计算 */
-#define USE_ATOMIMU_EULER 0      /* 1: 接收CAN欧拉角, 0: 使用自己计算 */
+/* 1: 接收 CAN 四元数，0: 本地解算
+ * 1: receive the quaternion over CAN, 0: compute locally */
+#define USE_ATOMIMU_QUATERNION 0
+/* 1: 接收 CAN 欧拉角，0: 本地解算
+ * 1: receive the Euler angles over CAN, 0: compute locally */
+#define USE_ATOMIMU_EULER 0
 
 typedef union
 {
@@ -64,7 +67,6 @@ typedef struct __attribute__((packed))
 class AtomImuCan
 {
  public:
-  /*陀螺仪参数*/
   struct Param
   {
     uint16_t can_id;
@@ -375,7 +377,7 @@ class AtomImuCan
     self->CheckOffline();
   }
 
-  uint64_t last_online_time_ = 0; /* 方便查看陀螺仪是否在线 */
+  uint64_t last_online_time_ = 0;
 
   Param param_;
   Feedback feedback_;
