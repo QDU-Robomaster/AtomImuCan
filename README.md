@@ -85,7 +85,7 @@ An instance written by `xrobot instance add QDU-Robomaster/AtomImuCan`, with `ca
 ```yaml
 modules:
   - module: QDU-Robomaster/AtomImuCan
-    id: atomimucan
+    id: atomimucan_0
     args:
       - can_bus: can1
       - param:
