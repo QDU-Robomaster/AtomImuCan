@@ -80,7 +80,7 @@ The Topic names are fixed; the Module publishes the following three Topics.
 
 `xrobot instance add QDU-Robomaster/AtomImuCan` 写入的实例，`can_bus` 填为 CAN 对象的名称，该名称来自 BSP 的 `XR_REGISTER`（硬件注册）：
 
-An instance written by `xrobot instance add QDU-Robomaster/AtomImuCan`, with `can_bus` set to the name of a CAN object, which comes from the BSP's `XR_REGISTER` (hardware registration):
+An instance written by `xrobot instance add QDU-Robomaster/AtomImuCan`, with `can_bus` set to the name of a CAN object, which comes from the BSP's `XR_REGISTER` (Registration):
 
 ```yaml
 modules:
